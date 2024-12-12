@@ -8,10 +8,15 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import random
 from IPython.display import clear_output
+import wandb
 
 plt.ion()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
+
+run = wandb.init(
+    project='alpha-zero',
+)
 
 class Game:
     def __init__(self):
@@ -321,9 +326,6 @@ class AlphaZero:
 
     def learn(self):
         losses = []
-        fig, ax = plt.subplots()
-        line, = ax.plot(losses, label='loss')
-
         for iter in range(self.args['num_iterations']):
             memory = []
 
@@ -338,24 +340,17 @@ class AlphaZero:
             for epoch in tqdm(range(self.args['num_epochs'])):
                 loss = self.train(memory)
                 losses.append(loss)
-                print(loss)
-
-                line.set_ydata(losses)
-                line.set_xdata(range(len(losses)))
-                ax.relim()
-                ax.autoscale_view()
-                plt.draw()
-                plt.pause(0.01)
-                clear_output(wait=True)
+                wandb.log({
+                    'loss': loss
+                })
             
-            if (iter+1) % 10 == 0:
-                torch.save(self.model.state_dict(), f'model_{iter+1}.pth')
-                torch.save(self.optimizer.state_dict(), f'optimizer_{iter+1}.pth')
+            torch.save(self.model.state_dict(), f'model_{iter+1}.pth')
+            torch.save(self.optimizer.state_dict(), f'optimizer_{iter+1}.pth')
 
 def test_run():
     game = Game()
     model = ResNet(game, 4, 64, device)
-    model.load_state_dict(torch.load('model_500.pth'))
+    model.load_state_dict(torch.load('model_10.pth', map_location=torch.device(device)))
     model.eval()
     state = game.get_initial_state()
 
