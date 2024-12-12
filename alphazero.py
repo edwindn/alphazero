@@ -344,7 +344,7 @@ class AlphaZero:
                     'loss': loss
                 })
 
-            if (iter+1) % 20 == 0
+            if (iter+1) % 20 == 0:
                 torch.save(self.model.state_dict(), f'model_{iter+1}.pth')
                 torch.save(self.optimizer.state_dict(), f'optimizer_{iter+1}.pth')
 
