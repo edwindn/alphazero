@@ -391,7 +391,7 @@ def test_run():
     quit()
 
 if __name__ == '__main__':
-    test_run()
+    #test_run()
     game = Game()
     model = ResNet(game, 4, 64, device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
@@ -400,7 +400,7 @@ if __name__ == '__main__':
         'C': 2,
         'num_searches': 60,
         'num_epochs': 10,
-        'num_iterations': 10,
+        'num_iterations': 1000,
         'num_game_iterations': 500,
         'batch_size': 64,
         'temperature': 1.25,
