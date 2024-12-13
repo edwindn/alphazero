@@ -319,9 +319,10 @@ class AlphaZero:
             for epoch in tqdm(range(self.args['num_epochs'])):
                 loss = self.train(memory)
                 print(loss)
-            
-            torch.save(self.model.state_dict(), f"model_{iteration}.pth")
-            torch.save(self.optimizer.state_dict(), f"optimizer_{iteration}.pth")
+
+            if (iteration+1) % 5 == 0
+                torch.save(self.model.state_dict(), f"model_bm_{iteration+1}.pth")
+                torch.save(self.optimizer.state_dict(), f"optimizer_bm_{iteration+1}.pth")
 
 
 def test_run():
@@ -397,7 +398,7 @@ def test_run():
     quit()
 
 if __name__ == '__main__':
-    test_run()
+    #test_run()
     game = Game()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ResNet(game, 4, 64, device)
@@ -405,7 +406,7 @@ if __name__ == '__main__':
     args = {
         'C': 2,
         'num_searches': 60,
-        'num_iterations': 3,
+        'num_iterations': 10,
         'num_selfPlay_iterations': 500,
         'num_epochs': 4,
         'batch_size': 64,
