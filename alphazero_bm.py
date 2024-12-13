@@ -316,9 +316,11 @@ class AlphaZero:
                 memory += self.selfPlay()
                 
             self.model.train()
+            epoch_loss = 0
             for epoch in tqdm(range(self.args['num_epochs'])):
                 loss = self.train(memory)
-                print(loss)
+                epoch_loss += loss
+            print('loss: ', epoch_loss/self.args['num_epochs'])
 
             if (iteration+1) % 5 == 0:
                 torch.save(self.model.state_dict(), f"model_bm_{iteration+1}.pth")
