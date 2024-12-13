@@ -1,3 +1,3 @@
 # alphazero
 
-Implementation of Google's Alphazero model using Monte Carlo Tree Search
+Implementation of Google's AlphaZero model using Monte Carlo Tree Search
