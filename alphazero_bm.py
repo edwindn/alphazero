@@ -320,7 +320,7 @@ class AlphaZero:
                 loss = self.train(memory)
                 print(loss)
 
-            if (iteration+1) % 5 == 0
+            if (iteration+1) % 5 == 0:
                 torch.save(self.model.state_dict(), f"model_bm_{iteration+1}.pth")
                 torch.save(self.optimizer.state_dict(), f"optimizer_bm_{iteration+1}.pth")
 
