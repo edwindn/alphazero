@@ -16,6 +16,7 @@ plt.ion()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
+# uncomment to initiate logging
 #run = wandb.init(project='alpha-zero',)
     
 class Game:
@@ -351,8 +352,8 @@ class AlphaZero:
                 clear_output(wait=True)
                 #wandb.log({'loss': loss})
             
-        torch.save(self.model.state_dict(), f'model_{iter+1}.pth')
-        print(f'---- saved model {iter+1} ----')
+        torch.save(self.model.state_dict(), 'weights.pth')
+        print(f'---- saved model ----')
 
 def test_run(weight_path):
     game = Game()
