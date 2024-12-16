@@ -9,57 +9,53 @@ from tqdm import tqdm
 import random
 from IPython.display import clear_output
 import wandb
+import sys
+import math
 
 plt.ion()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-run = wandb.init(
-    project='alpha-zero',
-)
-
+#run = wandb.init(project='alpha-zero',)
+    
 class Game:
     def __init__(self):
+        self.row_count = 3
+        self.column_count = 3
         self.state_size = (3, 3)
         self.action_size = 9
-        self.action_map = {1:[0,0], 2:[0,1], 3:[0,2], 4:[1,0], 5:[1,1], 6:[1,2], 7:[2,0], 8:[2,1], 9:[2,2]}
-
+        self.action_map = {0:[0,0], 1:[0,1], 2:[0,2], 3:[1,0], 4:[1,1], 5:[1,2], 6:[2,0], 7:[2,1], 8:[2,2]}
+        
+    def get_initial_state(self):
+        return np.zeros(self.state_size)
+    
     def update_state(self, action, player, state):
         state[tuple(self.action_map[action])] = player
         return state
-
+    
     def get_valid_moves(self, state):
         return (state.reshape(-1) == 0).astype(np.uint8)
-
+    
     def check_win(self, action, state):
         player = state[tuple(self.action_map[action])]
         if (np.any(np.sum(state, axis=0) == 3*player) or np.any(np.sum(state, axis=1) == 3*player) or
             np.sum(np.diag(state)) == 3*player or np.sum(np.diag(np.fliplr(state))) == 3*player):
-            return player
-        else:
-            return 0
-
+            return True
+        return False
+    
     def check_terminated(self, action, state):
-        if action is None: # WORKAROUND - MUST FIX THIS
-            if np.sum(self.get_valid_moves(state)) == 0:
-                return True, 0
-            else:
-                return False, 0
-
-        winner = self.check_win(action, state)
-        if winner != 0:
-            return True, winner
+        if self.check_win(action, state):
+            return True, 1 # ! rather than winner, True (since game is always from player's perspective)
         elif np.sum(self.get_valid_moves(state)) == 0:
             return True, 0
-        else:
-            return False, 0
-
-    def get_initial_state(self):
-        return np.zeros(self.state_size)
+        return False, 0
     
     def get_opponent(self, player):
         return -player
-
+    
+    def get_opponent_view(self, state, player):
+        return state*player
+    
     def encode_state(self, state):
         return np.stack((state==-1, state==0, state==1)).astype(np.float32)
 
@@ -99,16 +95,21 @@ class Node:
         return Q + self.args['C'] * np.sqrt(self.visits) / (1 + child.visits) * child.prior
 
     def expand(self, policy):
+        # new logic: return the node with the highest prob
+        highest_prob = 0
+        #best_child = None
         for action, prob in enumerate(policy):
-            action = action + 1
             if prob > 0:
                 child_state = self.state.copy()
                 child_state = self.game.update_state(action, 1, child_state)
-                child_state = -child_state # as seen from the other player
+                child_state = self.game.get_opponent_view(child_state, player=-1) # as seen from the other player
 
                 child = Node(self.game, self.args, child_state, self, action, prob)
                 self.children.append(child)
+                if prob > highest_prob:
+                    best_child = child
         return child
+        #return best_child
 
     def simulate(self): # no longer used
         terminal, winner = self.game.check_terminated(self.action, self.state)
@@ -120,7 +121,7 @@ class Node:
         rollout_player = 1
         while True:
             valid_moves = self.game.get_valid_moves(rollout_state)
-            action = np.random.choice(np.where(valid_moves == 1)[0]) + 1
+            action = np.random.choice(np.where(valid_moves == 1)[0])
             rollout_state = self.game.update_state(action, rollout_player, rollout_state)
 
             terminal, winner = self.game.check_terminated(action, rollout_state)
@@ -134,7 +135,7 @@ class Node:
     def backpropagate(self, winner):
         self.visits += 1
         self.value += winner
-        winner = self.game.get_opponent(winner)
+        winner = self.game.get_opponent(winner) # or value more generally
 
         if self.parent is not None:
             self.parent.backpropagate(winner)
@@ -149,17 +150,19 @@ class MCTS:
     def search(self, state):
         root = Node(self.game, self.args, state, visit_count=1)
 
+        # give the root initial child nodes
         policy, _ = self.model(
             torch.tensor(self.game.encode_state(state), device=self.model.device).unsqueeze(0)
         )
         policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
+        # give the policy some noise
         policy = (1 - self.args['epsilon']) * policy + self.args['epsilon'] * np.random.dirichlet([self.args['alpha']] * self.game.action_size)
         valid_moves = self.game.get_valid_moves(state)
         policy *= valid_moves
         policy /= np.sum(policy)
         root.expand(policy)
 
-        for s in range(self.args['num_searches']):
+        for _ in range(self.args['num_searches']):
             node = root
 
             while not node.is_terminal():
@@ -176,20 +179,16 @@ class MCTS:
                 policy *= valid_moves
                 policy /= np.sum(policy)
 
-                node = node.expand(policy) # expansion
+                node = node.expand(policy)
                 #winner = node.simulate()
 
             node.backpropagate(winner)
 
-        # update wins & visit counts
         action_probs = np.zeros(self.game.action_size)
         for child in root.children:
-            action_probs[child.action - 1] = child.visits
-
-        if np.sum(action_probs) != 0:
-            action_probs /= np.sum(action_probs)
-        return action_probs
-
+            action_probs[child.action] = child.visits
+        action_probs /= np.sum(action_probs)
+        return action_probs # action probs for taking the next action in the game based on how often the simulation visited that node
 
 class ResNet(nn.Module):
     def __init__(self, game, num_blocks, hidden_dim, device):
@@ -214,7 +213,7 @@ class ResNet(nn.Module):
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(32*3*3, game.action_size)                                                                                        
+            nn.Linear(32*3*3, game.action_size)                                                                                  
         )
 
         self.value_head = nn.Sequential( # outputs value of the node
@@ -223,7 +222,7 @@ class ResNet(nn.Module):
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(3*3*3, 1),
-            nn.Tanh()                             
+            nn.Tanh()
         )
 
         self.to(device)
@@ -247,13 +246,14 @@ class ResBlock(nn.Module):
             nn.ReLU(),
             nn.Conv2d(channels, channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(channels),
-            nn.ReLU(),
         )
 
     def forward(self, x):
-        res = x
+        residual = x
         x = self.block(x)
-        return x + res
+        x += residual
+        x = F.relu(x)
+        return x
 
 
 class AlphaZero:
@@ -267,21 +267,19 @@ class AlphaZero:
     def play(self):
         memory = []
         player = 1
-
         state = self.game.get_initial_state()
+
         while True:
-            neutral_state = -state
+            neutral_state = self.game.get_opponent_view(state, player) # always give from prespective of current player
             action_probs = self.mcts.search(neutral_state)
             memory.append((neutral_state, action_probs, player))
 
-            if np.sum(action_probs) == 0:
-                terminal, winner = True, 0
-            else:
-                temperature_action_probs = action_probs ** (1 / (self.args['temperature'] + 0.000001))
-                temperature_action_probs /= np.sum(temperature_action_probs)
-                action = np.random.choice(np.arange(self.game.action_size), p=temperature_action_probs) + 1
-                state = self.game.update_state(action, player, state)
-                terminal, winner = self.game.check_terminated(action, state)
+            action_probs = action_probs ** (1 / (self.args['temperature'] + 0.000001))
+            action_probs /= np.sum(action_probs)
+            action = np.random.choice(self.game.action_size, p=action_probs)
+            #print(f'chosen action: {action}')
+            state = self.game.update_state(action, player, state)
+            terminal, winner = self.game.check_terminated(action, state)
 
             if terminal:
                 return_memory = []
@@ -295,14 +293,14 @@ class AlphaZero:
 
                 return return_memory
 
-            player = self.game.get_opponent(player)
+            player = -player
 
     def train(self, memory):
         # shuffle training data
         random.shuffle(memory)
         tot_loss = 0
         for batch_idx in range(0, len(memory), self.args['batch_size']):
-            batch = memory[batch_idx:min(batch_idx+self.args['batch_size'], len(memory))]
+            batch = memory[batch_idx:min(batch_idx+self.args['batch_size'], len(memory)-1)]
             state, policy_targets, value_targets = zip(*batch)
             state, policy_targets, value_targets = np.array(state), np.array(policy_targets), np.array(value_targets).reshape(-1, 1)
 
@@ -326,6 +324,9 @@ class AlphaZero:
 
     def learn(self):
         losses = []
+        fig, ax = plt.subplots()
+        line, = ax.plot(losses, label='loss')
+
         for iter in range(self.args['num_iterations']):
             memory = []
 
@@ -340,18 +341,23 @@ class AlphaZero:
             for epoch in tqdm(range(self.args['num_epochs'])):
                 loss = self.train(memory)
                 losses.append(loss)
-                wandb.log({
-                    'loss': loss
-                })
 
-            if (iter+1) % 20 == 0:
-                torch.save(self.model.state_dict(), f'model_{iter+1}.pth')
-                torch.save(self.optimizer.state_dict(), f'optimizer_{iter+1}.pth')
+                line.set_ydata(losses)
+                line.set_xdata(range(len(losses)))
+                ax.relim()
+                ax.autoscale_view()
+                plt.draw()
+                plt.pause(0.01)
+                clear_output(wait=True)
+                #wandb.log({'loss': loss})
+            
+        torch.save(self.model.state_dict(), f'model_{iter+1}.pth')
+        print(f'---- saved model {iter+1} ----')
 
-def test_run():
+def test_run(weight_path):
     game = Game()
     model = ResNet(game, 4, 64, device)
-    model.load_state_dict(torch.load('model_10.pth', map_location=torch.device(device)))
+    model.load_state_dict(torch.load(weight_path, map_location=torch.device(device)))
     model.eval()
     state = game.get_initial_state()
 
@@ -360,9 +366,9 @@ def test_run():
         print(state)
         valid_moves = game.get_valid_moves(state)
         if player == 1:
-            print(f'valid moves: {(np.argwhere(valid_moves)+1).flatten().tolist()}')
+            print(f'valid moves: {(np.argwhere(valid_moves)).flatten().tolist()}')
             action = int(input(f'player {player}: '))
-            if valid_moves[action-1] == 0:
+            if valid_moves[action] == 0:
                 print('action not valid')
                 continue
         
@@ -374,13 +380,14 @@ def test_run():
             plt.bar(np.arange(1, 10), action_probs.numpy())
             plt.show()
             plt.pause(1)
-            action = torch.argmax(action_probs) + 1
+            action = torch.argmax(action_probs)
             action = action.item()
 
         state = game.update_state(action, player, state)
         terminal, winner = game.check_terminated(action, state)
 
         if terminal:
+            print(state)
             if winner == 0:
                 print('draw')
             else:
@@ -392,7 +399,9 @@ def test_run():
     quit()
 
 if __name__ == '__main__':
-    #test_run()
+    if len(sys.argv) > 1:
+        weight_path = sys.argv[1]
+        test_run(weight_path)
     game = Game()
     model = ResNet(game, 4, 64, device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
@@ -400,8 +409,8 @@ if __name__ == '__main__':
     args = {
         'C': 2,
         'num_searches': 60,
-        'num_epochs': 10,
-        'num_iterations': 1000,
+        'num_epochs': 4,
+        'num_iterations': 10,
         'num_game_iterations': 500,
         'batch_size': 64,
         'temperature': 1.25,
