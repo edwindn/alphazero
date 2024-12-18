@@ -173,6 +173,7 @@ def train(epochs, dataset, batch_size=128):
         print(f'Epoch {epoch}')
         for batch in tqdm(iter(dataloader)):
             gan.training_step(batch)
+        torch.save(gan.state_dict(), f'gan_epoch_{epoch}.pth')
         gan.plot_imgs(epoch)
 
 if __name__ == '__main__':
