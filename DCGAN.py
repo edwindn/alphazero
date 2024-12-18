@@ -129,7 +129,6 @@ class GAN(nn.Module):
             self.d_losses.append(value)
 
     def training_step(self, batch):
-        print(f"Memory usage before training step: {get_memory_usage()} MB")  # Memory usage before training step
         imgs = batch.to(device)
 
         z = torch.randn(imgs.size(0), self.latent_dim, device=device)
@@ -160,8 +159,6 @@ class GAN(nn.Module):
         self.optimizer_d.step()
 
         self.log("loss_d", loss_d)
-
-        print(f"Memory usage after training step: {get_memory_usage()} MB")  # Memory usage after training step
 
         return loss_g.item(), loss_d.item()
 
