@@ -33,7 +33,7 @@ class ImageDataset(Dataset):
             image = self.transform(image)
         return image
 
-custom_dataset = ImageDataset('./', transform=transform)
+custom_dataset = ImageDataset('../img_align_celeba', transform=transform)
 
 class Discriminator(nn.Module):
     def __init__(self, input_dim=1, img_size=224):
