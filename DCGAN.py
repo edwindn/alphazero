@@ -13,6 +13,10 @@ import psutil  # Import psutil for memory usage tracking
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
+files = [f for f in os.listdir(image_dir) if f.endswith('.jpg')]
+print(len(files))
+quit()
+
 BATCH_SIZE = 64
 
 transform = Compose([
