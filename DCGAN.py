@@ -175,5 +175,5 @@ def train(epochs, dataset, batch_size=128):
             gan.training_step(batch)
         gan.plot_imgs(epoch)
 
-  if __name__ == '__main__':
+if __name__ == '__main__':
     train(10, custom_dataset)
