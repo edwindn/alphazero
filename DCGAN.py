@@ -11,7 +11,9 @@ from PIL import Image
 import psutil  # Import psutil for memory usage tracking
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device
+print(device)
+
+BATCH_SIZE = 64
 
 transform = Compose([
     Resize((224, 224)),
@@ -177,7 +179,7 @@ class GAN(nn.Module):
         plt.close()
         print(f"Memory usage after plotting images: {get_memory_usage()} MB")  # Memory usage after plotting
 
-def train(epochs, dataset, batch_size=128):
+def train(epochs, dataset, batch_size=BATCH_SIZE):
     gan = GAN().to(device)
     dataloader = DataLoader(custom_dataset, batch_size, shuffle=True)
     for epoch in range(epochs):
