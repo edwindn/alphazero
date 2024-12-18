@@ -14,7 +14,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 BATCH_SIZE = 64
-DATASET_LEN = 50000
+DATASET_LEN = 500
 
 transform = Compose([
     Resize((224, 224)),
