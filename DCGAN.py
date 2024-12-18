@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import numpy as np
 from PIL import Image
+import psutil  # Import psutil for memory usage tracking
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 device
@@ -16,6 +17,11 @@ transform = Compose([
     Resize((224, 224)),
     ToTensor(),
 ])
+
+# Function to get current memory usage
+def get_memory_usage():
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024  # Returns memory usage in MB
 
 class ImageDataset(Dataset):
     def __init__(self, image_dir, transform=None):
@@ -120,6 +126,7 @@ class GAN(nn.Module):
             self.d_losses.append(value)
 
     def training_step(self, batch):
+        print(f"Memory usage before training step: {get_memory_usage()} MB")  # Memory usage before training step
         imgs = batch.to(device)
 
         z = torch.randn(imgs.size(0), self.latent_dim, device=device)
@@ -151,9 +158,12 @@ class GAN(nn.Module):
 
         self.log("loss_d", loss_d)
 
+        print(f"Memory usage after training step: {get_memory_usage()} MB")  # Memory usage after training step
+
         return loss_g.item(), loss_d.item()
 
     def plot_imgs(self, epoch):
+        print(f"Memory usage before plotting images: {get_memory_usage()} MB")  # Memory usage before plotting
         z = self.val_z.to(device).type_as(self.generator.fc.weight)
         sample_imgs = self(z).cpu()
 
@@ -165,6 +175,7 @@ class GAN(nn.Module):
         plt.show()
         plt.savefig(f'epoch_{epoch}.png')
         plt.close()
+        print(f"Memory usage after plotting images: {get_memory_usage()} MB")  # Memory usage after plotting
 
 def train(epochs, dataset, batch_size=128):
     gan = GAN().to(device)
