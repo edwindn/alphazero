@@ -155,7 +155,7 @@ class GAN(nn.Module):
             plt.tight_layout()
             plt.imshow(sample_imgs.detach()[i, 0, :, :], cmap='gray_r', interpolation='none')
             plt.axis('off')
-        plt.savefig(f'epoch_{epoch}.png')
+        plt.savefig(f'gan_images/epoch_{epoch}.png')
         plt.close()
 
 def train(epochs, dataset, batch_size):
