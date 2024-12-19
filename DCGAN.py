@@ -174,8 +174,11 @@ class GAN(nn.Module):
         plt.savefig(f'dcgan_images/epoch_{epoch}.png')
         plt.close()
 
-def train(epochs, dataset, batch_size=BATCH_SIZE):
+def train(epochs, dataset, batch_size=BATCH_SIZE, resume=False):
     gan = GAN().to(device)
+    if resume:
+        gan.load_state_dict(torch.load('dcgan_epoch_0.pth'))
+        gan.plot_imgs(0)
     dataloader = DataLoader(custom_dataset, batch_size, shuffle=True, num_workers=4)
     print(len(dataloader))
     for epoch in range(epochs):
@@ -186,4 +189,4 @@ def train(epochs, dataset, batch_size=BATCH_SIZE):
         gan.plot_imgs(epoch)
 
 if __name__ == '__main__':
-    train(10, custom_dataset)
+    train(10, custom_dataset, resume=True)
