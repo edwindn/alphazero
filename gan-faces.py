@@ -158,8 +158,10 @@ class GAN(nn.Module):
         plt.savefig(f'gan_images/epoch_{epoch}.png')
         plt.close()
 
-def train(epochs, dataset, batch_size):
+def train(epochs, dataset, batch_size, resume=False):
     gan = GAN().to(device)
+    if resume:
+        gan.load_state_dict(torch.load('gan_weights.pth'))
     dl_train = DataLoader(dataset, batch_size, shuffle=True)
     for epoch in range(epochs):
         print(f'Epoch {epoch}')
@@ -170,4 +172,4 @@ def train(epochs, dataset, batch_size):
             gan.plot_imgs(epoch)
 
 if __name__ == '__main__':
-    train(1000, ds, 16)
+    train(1000, ds, 16, resume=True)
