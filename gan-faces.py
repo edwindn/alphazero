@@ -165,8 +165,9 @@ def train(epochs, dataset, batch_size):
         print(f'Epoch {epoch}')
         for batch in tqdm(iter(dl_train)):
             gan.training_step(batch)
-        torch.save(gan.state_dict(), f'gan_weights_{epoch}.pth')
-        gan.plot_imgs(epoch)
+        torch.save(gan.state_dict(), f'gan_weights.pth')
+        if epoch % 10 == 0:
+            gan.plot_imgs(epoch)
 
 if __name__ == '__main__':
     train(1000, ds, 16)
