@@ -161,7 +161,7 @@ class GAN(nn.Module):
 def train(epochs, dataset, batch_size, resume=False):
     gan = GAN().to(device)
     if resume:
-        gan.load_state_dict(torch.load('gan_weights.pth'), weights_only=True)
+        gan.load_state_dict(torch.load('gan_weights.pth'))
     dl_train = DataLoader(dataset, batch_size, shuffle=True)
     for epoch in range(epochs):
         print(f'Epoch {epoch}')
@@ -172,4 +172,4 @@ def train(epochs, dataset, batch_size, resume=False):
             gan.plot_imgs(epoch)
 
 if __name__ == '__main__':
-    train(1000, ds, 16, resume=True)
+    train(1000, ds, 16, resume=False)
