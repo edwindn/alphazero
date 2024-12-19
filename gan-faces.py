@@ -155,7 +155,6 @@ class GAN(nn.Module):
             plt.tight_layout()
             plt.imshow(sample_imgs.detach()[i, 0, :, :], cmap='gray_r', interpolation='none')
             plt.axis('off')
-        plt.show()
         plt.savefig(f'epoch_{epoch}.png')
         plt.close()
 
