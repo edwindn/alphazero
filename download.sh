@@ -1,7 +1,10 @@
 sudo apt update
 sudo apt install python3
+sudo apt update
 sudo apt install pip
+sudo apt update
 sudo apt install git
+sudo apt update
 sudo apt install unzip
 sudo apt update
 python3 -m venv venv
