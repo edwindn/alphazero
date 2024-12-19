@@ -176,7 +176,7 @@ class GAN(nn.Module):
 
 def train(epochs, dataset, batch_size=BATCH_SIZE):
     gan = GAN().to(device)
-    dataloader = DataLoader(custom_dataset, batch_size, shuffle=True)
+    dataloader = DataLoader(custom_dataset, batch_size, shuffle=True, num_workers=4)
     print(len(dataloader))
     for epoch in range(epochs):
         print(f'Epoch {epoch}')
