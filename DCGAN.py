@@ -13,8 +13,8 @@ import psutil  # Import psutil for memory usage tracking
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-BATCH_SIZE = 16
-DATASET_LEN = 1000000
+BATCH_SIZE = 64
+#DATASET_LEN = 1000000
 
 transform = Compose([
     Resize((224, 224)),
@@ -30,7 +30,7 @@ class ImageDataset(Dataset):
     def __init__(self, image_dir, transform=None):
         self.image_dir = image_dir
         self.transform = transform
-        self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.jpg')][:DATASET_LEN]
+        self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.jpg')]#[:DATASET_LEN]
 
     def __len__(self):
         return len(self.image_files)
@@ -163,7 +163,6 @@ class GAN(nn.Module):
         return loss_g.item(), loss_d.item()
 
     def plot_imgs(self, epoch):
-        print(f"Memory usage before plotting images: {get_memory_usage()} MB")  # Memory usage before plotting
         z = self.val_z.to(device).type_as(self.generator.fc.weight)
         sample_imgs = self(z).cpu()
 
@@ -172,10 +171,8 @@ class GAN(nn.Module):
             plt.tight_layout()
             plt.imshow(sample_imgs.detach()[i, 0, :, :], cmap='gray_r', interpolation='none')
             plt.axis('off')
-        plt.show()
-        plt.savefig(f'epoch_{epoch}.png')
+        plt.savefig(f'dcgan_images/epoch_{epoch}.png')
         plt.close()
-        print(f"Memory usage after plotting images: {get_memory_usage()} MB")  # Memory usage after plotting
 
 def train(epochs, dataset, batch_size=BATCH_SIZE):
     gan = GAN().to(device)
@@ -185,7 +182,7 @@ def train(epochs, dataset, batch_size=BATCH_SIZE):
         print(f'Epoch {epoch}')
         for batch in tqdm(iter(dataloader)):
             gan.training_step(batch)
-        torch.save(gan.state_dict(), f'gan_epoch_{epoch}.pth')
+        torch.save(gan.state_dict(), f'dcgan_epoch_{epoch}.pth')
         gan.plot_imgs(epoch)
 
 if __name__ == '__main__':
