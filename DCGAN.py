@@ -13,8 +13,8 @@ import psutil  # Import psutil for memory usage tracking
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-BATCH_SIZE = 45
-DATASET_LEN = 1000000
+BATCH_SIZE = 16
+DATASET_LEN = 100000
 
 transform = Compose([
     Resize((224, 224)),
