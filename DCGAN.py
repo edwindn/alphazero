@@ -13,8 +13,8 @@ import psutil  # Import psutil for memory usage tracking
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-BATCH_SIZE = 64
-#DATASET_LEN = 1000000
+BATCH_SIZE = 45
+DATASET_LEN = 1000000
 
 transform = Compose([
     Resize((224, 224)),
@@ -30,7 +30,7 @@ class ImageDataset(Dataset):
     def __init__(self, image_dir, transform=None):
         self.image_dir = image_dir
         self.transform = transform
-        self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.jpg')]#[:DATASET_LEN]
+        self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.jpg')][:DATASET_LEN]
 
     def __len__(self):
         return len(self.image_files)
