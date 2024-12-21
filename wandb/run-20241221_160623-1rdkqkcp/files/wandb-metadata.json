@@ -1,0 +1,42 @@
+{
+  "os":  "Linux-5.15.0-130-generic-x86_64-with-glibc2.35",
+  "python":  "CPython 3.10.12",
+  "startedAt":  "2024-12-21T16:06:23.306627Z",
+  "program":  "/home/paperspace/alphazero/WGAN.py",
+  "codePath":  "WGAN.py",
+  "git":  {
+    "remote":  "git@github.com:edwindn/alphazero.git",
+    "commit":  "63c9b77168cb046f78d5808ebe8acc956dc3b4c5"
+  },
+  "email":  "e.d.888anonymous@gmail.com",
+  "root":  "/home/paperspace/alphazero",
+  "host":  "pscveualuulz",
+  "executable":  "/home/paperspace/venv/bin/python",
+  "codePathLocal":  "WGAN.py",
+  "cpu_count":  8,
+  "cpu_count_logical":  8,
+  "gpu":  "Quadro M4000",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "50869391360",
+      "used":  "32483246080"
+    }
+  },
+  "memory":  {
+    "total":  "31529164800"
+  },
+  "cpu":  {
+    "count":  8,
+    "countLogical":  8
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "Quadro M4000",
+      "memoryTotal":  "8589934592",
+      "cudaCores":  1664,
+      "architecture":  "Maxwell"
+    }
+  ],
+  "cudaVersion":  "12.4"
+}
