@@ -1,0 +1,10 @@
+{"time":"2024-12-21T18:09:24.835713933Z","level":"INFO","msg":"using version","core version":"0.19.1"}
+{"time":"2024-12-21T18:09:24.835741158Z","level":"INFO","msg":"created symlink","path":"/home/paperspace/alphazero/wandb/run-20241221_180924-mze5t138/logs/debug-core.log"}
+{"time":"2024-12-21T18:09:24.938867682Z","level":"INFO","msg":"created new stream","id":"mze5t138"}
+{"time":"2024-12-21T18:09:24.938904739Z","level":"INFO","msg":"stream: started","id":"mze5t138"}
+{"time":"2024-12-21T18:09:24.939135308Z","level":"INFO","msg":"writer: Do: started","stream_id":"mze5t138"}
+{"time":"2024-12-21T18:09:24.939273844Z","level":"INFO","msg":"handler: started","stream_id":"mze5t138"}
+{"time":"2024-12-21T18:09:24.93931621Z","level":"INFO","msg":"sender: started","stream_id":"mze5t138"}
+{"time":"2024-12-21T18:09:25.112477591Z","level":"INFO","msg":"Starting system monitor"}
+{"time":"2024-12-21T18:31:30.457293898Z","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/edncodeismad/celeba-gan/mze5t138/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2024-12-21T18:31:37.689684724Z","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/edncodeismad/celeba-gan/mze5t138/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
