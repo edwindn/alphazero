@@ -44,38 +44,45 @@ class ImageDataset(Dataset):
 
 custom_dataset = ImageDataset('../img_align_celeba', transform=transform)
 
+
 class Discriminator(nn.Module):
     def __init__(self, input_dim=1, img_size=224):
         super(Discriminator, self).__init__()
 
         self.cnn = nn.Sequential(
-            nn.Conv2d(3, 10, kernel_size=5),
+            nn.Conv2d(3, 64, kernel_size=5),
+            nn.BatchNorm2d(64),
             nn.MaxPool2d(kernel_size=2),
             nn.ReLU(),
-            nn.Conv2d(10, 20, kernel_size=5, stride=2),
-            nn.Dropout(0.5),
-            nn.Conv2d(20, 20, kernel_size=5, stride=2),
-            nn.Dropout(0.5),
-            nn.Conv2d(20, 20, kernel_size=5, stride=2),
-            nn.Dropout(0.5),
+            nn.Conv2d(64, 128, kernel_size=4, stride=2),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Conv2d(128, 256, kernel_size=4, stride=2),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, kernel_size=4, stride=2),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Conv2d(256, 16, kernel_size=4, stride=1),
             nn.MaxPool2d(kernel_size=2),
             nn.ReLU(),
+            nn.Flatten()
         )
 
         self.ffwd = nn.Sequential(
-            nn.Linear(500, 64),
+            nn.Linear(256, 64),
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(64, 1),
-            nn.Sigmoid()
+            # linear activation since we need the full loss range
         )
 
     def forward(self, img):
         x = self.cnn(img)
-        x = x.view(-1, 500)
         x = self.ffwd(x)
         return x
 
+        
 class Generator(nn.Module):
     def __init__(self, latent_dim):
         super(Generator, self).__init__()
@@ -84,16 +91,22 @@ class Generator(nn.Module):
 
         self.conv_blocks = nn.Sequential(
             nn.ConvTranspose2d(64, 64, 4, stride=2, padding=1),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.ConvTranspose2d(64, 64, 4, stride=2, padding=1),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.ConvTranspose2d(64, 128, 4, stride=2, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.ConvTranspose2d(128, 256, 4, stride=2, padding=1),
+            nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.ConvTranspose2d(256, 128, 3, stride=2, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.Conv2d(128, 3, kernel_size=2, stride=1, padding=1)
+            nn.Conv2d(128, 3, kernel_size=2, stride=1, padding=1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -110,83 +123,83 @@ class GAN(nn.Module):
 
         self.loss_fn = nn.BCELoss().to(device)
         self.latent_dim = latent_dim
-        self.val_z = torch.randn(6, latent_dim, device=device)
+        self.val_z = torch.randn(12, latent_dim, device=device)
 
         self.g_losses = []
         self.d_losses = []
 
-        self.optimizer_g = torch.optim.Adam(self.generator.parameters(), lr=lr)
-        self.optimizer_d = torch.optim.Adam(self.discriminator.parameters(), lr=lr)
+        self.optimizer_g = torch.optim.Adam(self.generator.parameters(), lr=lr, betas=(0.5, 0.999))
+        self.optimizer_d = torch.optim.Adam(self.discriminator.parameters(), lr=lr, betas=(0.5, 0.999))
 
     def forward(self, x):
         x = x.to(device)
         return self.generator(x)
 
     def log(self, name, value):
-        if name == 'loss_g':
-            self.g_losses.append(value)
-        elif name == 'loss_d':
-            self.d_losses.append(value)
+        wandb.log({name: value})
 
     def training_step(self, batch):
         imgs = batch.to(device)
-
         z = torch.randn(imgs.size(0), self.latent_dim, device=device)
 
-        # Train generator
-        self.optimizer_g.zero_grad()
-        fake_imgs = self(z)
-        disc_pred = self.discriminator(fake_imgs)
-        true = torch.ones(imgs.size(0), 1, device=device)
-        loss_g = self.loss_fn(disc_pred, true)
-        loss_g.backward()
-        self.optimizer_g.step()
+        # ----- train discriminator
+        for p in self.discriminator.parameters():
+            p.requires_grad = True
+        for p in self.generator.parameters():
+            p.requires_grad = False
 
-        self.log("loss_g", loss_g)
+        self.discriminator.zero_grad()
+        loss_d_real = self.discriminator(imgs).mean() # to remove batch size
 
-        # Train discriminator
-        self.optimizer_d.zero_grad()
-        pred_real = self.discriminator(imgs)
-        true = torch.ones(imgs.size(0), 1, device=device)
-        real_loss = self.loss_fn(pred_real, true)
+        fake = self.generator(z).detach()
+        loss_d_fake = self.discriminator(fake).mean()
 
-        pred_fake = self.discriminator(fake_imgs.detach())
-        fake = torch.zeros(imgs.size(0), 1, device=device)
-        fake_loss = self.loss_fn(pred_fake, fake)
-
-        loss_d = (real_loss + fake_loss) / 2
+        loss_d = - loss_d_real + loss_d_fake
         loss_d.backward()
         self.optimizer_d.step()
 
-        self.log("loss_d", loss_d)
+        for p in self.discriminator.parameters():
+            p.data.clamp_(-0.01, 0.01) # gradient clipping
 
-        return loss_g.item(), loss_d.item()
+        # ----- train generator
+        for p in self.generator.parameters():
+            p.requires_grad = True
+        for p in self.discriminator.parameters():
+            p.requires_grad = False
+
+        self.generator.zero_grad()
+        fake = self.generator(z)
+        loss_g = - self.discriminator(fake).mean()
+        loss_g.backward()
+        self.optimizer_g.step()
+
+        self.log("loss_g", loss_g.item())
+        self.log("loss_d", loss_d.item())
+
 
     def plot_imgs(self, epoch):
         z = self.val_z.to(device).type_as(self.generator.fc.weight)
         sample_imgs = self(z).cpu()
 
         for i in range(sample_imgs.size(0)):
-            plt.subplot(2, 3, i+1)
+            plt.subplot(3, 4, i+1)
             plt.tight_layout()
-            plt.imshow(sample_imgs.detach()[i, 0, :, :], cmap='gray_r', interpolation='none')
+            img = sample_imgs.detach().cpu().numpy()[i, :, :, :]
+            img = img.transpose(1, 2, 0)
+            plt.imshow(img)
             plt.axis('off')
-        plt.savefig(f'dcgan_images/epoch_{epoch}.png')
+        plt.savefig(f'gan_images/epoch_{epoch}.png')
         plt.close()
 
-def train(epochs, dataset, batch_size=BATCH_SIZE, resume=False):
-    gan = GAN().to(device)
-    if resume:
-        gan.load_state_dict(torch.load('dcgan_epoch_0.pth'))
-        gan.plot_imgs(0)
-    dataloader = DataLoader(custom_dataset, batch_size, shuffle=True, num_workers=4)
-    print(len(dataloader))
+def train(epochs, dataset=custom_dataset, batch_size=128):
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     for epoch in range(epochs):
         print(f'Epoch {epoch}')
         for batch in tqdm(iter(dataloader)):
             gan.training_step(batch)
-        torch.save(gan.state_dict(), f'dcgan_epoch_{epoch}.pth')
         gan.plot_imgs(epoch)
+        torch.save(gan.state_dict(), 'gan_weights.pth')
 
 if __name__ == '__main__':
-    train(10, custom_dataset, resume=True)
+    gan = GAN().to(device)
+    train(20, batch_size=32)
