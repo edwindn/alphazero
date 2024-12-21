@@ -202,6 +202,7 @@ def train(epochs, dataset=custom_dataset, batch_size=128):
             gan.training_step(batch)
         gan.plot_imgs(epoch)
         torch.save(gan.state_dict(), 'wgan_weights.pth')
+        print('--- saved model weights ---')
 
 if __name__ == '__main__':
     gan = GAN().to(device)
