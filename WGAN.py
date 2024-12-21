@@ -201,8 +201,9 @@ def train(epochs, dataset=custom_dataset, batch_size=128):
         for batch in tqdm(iter(dataloader)):
             gan.training_step(batch)
         gan.plot_imgs(epoch)
-        torch.save(gan.state_dict(), 'gan_weights.pth')
+        torch.save(gan.state_dict(), 'wgan_weights.pth')
 
 if __name__ == '__main__':
     gan = GAN().to(device)
+    gan.load_state_dict(torch.load('wgan_weights.pth'))
     train(20, batch_size=32)
