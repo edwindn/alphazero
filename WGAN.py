@@ -9,9 +9,12 @@ from tqdm import tqdm
 import numpy as np
 from PIL import Image
 import psutil  # Import psutil for memory usage tracking
+import wandb
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
+
+run = wandb.init(project='celeba-gan')
 
 BATCH_SIZE = 16
 DATASET_LEN = 100000
