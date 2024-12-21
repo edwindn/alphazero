@@ -207,4 +207,4 @@ def train(epochs, dataset=custom_dataset, batch_size=128):
 if __name__ == '__main__':
     gan = GAN().to(device)
     gan.load_state_dict(torch.load('wgan_weights.pth'))
-    train(20, batch_size=BATCH_SIZE)
+    train(10, batch_size=BATCH_SIZE)
