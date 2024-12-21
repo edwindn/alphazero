@@ -16,7 +16,7 @@ print(device)
 
 run = wandb.init(project='celeba-gan')
 
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 DATASET_LEN = 100000
 
 transform = Compose([
@@ -207,4 +207,4 @@ def train(epochs, dataset=custom_dataset, batch_size=128):
 if __name__ == '__main__':
     gan = GAN().to(device)
     gan.load_state_dict(torch.load('wgan_weights.pth'))
-    train(20, batch_size=32)
+    train(20, batch_size=BATCH_SIZE)
