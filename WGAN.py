@@ -172,7 +172,7 @@ class GAN(nn.Module):
         loss_d_fake = self.discriminator(fake).mean()
         loss_gp = self.gradient_penalty(self.discriminator, fake, imgs)
 
-        loss_d = - loss_d_real + loss_d_fake + loss_gp
+        loss_d = - loss_d_real + loss_d_fake + loss_gp*self.lambda
         loss_d.backward()
         self.optimizer_d.step()
 
