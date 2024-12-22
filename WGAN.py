@@ -123,6 +123,7 @@ class GAN(nn.Module):
         self.loss_fn = nn.BCELoss().to(device)
         self.latent_dim = latent_dim
         self.val_z = torch.randn(12, latent_dim, device=device)
+        self.lambda = 10 # for gradient penalty
 
         self.g_losses = []
         self.d_losses = []
@@ -167,11 +168,11 @@ class GAN(nn.Module):
 
         self.discriminator.zero_grad()
         loss_d_real = self.discriminator(imgs).mean() # to remove batch size
-
         fake = self.generator(z).detach()
         loss_d_fake = self.discriminator(fake).mean()
+        loss_gp = self.gradient_penalty(self.discriminator, fake, imgs)
 
-        loss_d = - loss_d_real + loss_d_fake
+        loss_d = - loss_d_real + loss_d_fake + loss_gp
         loss_d.backward()
         self.optimizer_d.step()
 
