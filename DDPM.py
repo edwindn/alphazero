@@ -219,6 +219,7 @@ if __name__ == '__main__':
     dataloader_eval = DataLoader(mnist_eval, batch_size=BATCH_SIZE, shuffle=False, drop_last=True)
 
     model = UNet(device).to(device)
+    model.load_state_dict(torch.load('ddpm_weights.pth'))
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     loss_fn = nn.MSELoss(reduction='mean')
-    train(num_epochs=50, dataloader=dataloader, dataloader_eval=dataloader_eval)
+    train(num_epochs=20, dataloader=dataloader, dataloader_eval=dataloader_eval)
