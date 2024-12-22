@@ -8,15 +8,15 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import math
 from einops import rearrange
+import wandb
+
+run = wandb.init(project='diffusion-models')
 
 BATCH_SIZE = 64
 NUM_TIMESTEPS = 1000
 IMAGE_SIZE = 28
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
-
-mnist = MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
-dataloader = DataLoader(mnist, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
 
 class NoiseScheduler:
     def __init__(self, beta_start, beta_end, device, num_timesteps=NUM_TIMESTEPS):
@@ -169,11 +169,14 @@ class UNet(nn.Module): # predicts the noise to remove given the current image an
         x = self.ublock3(x, t_embs[-2])[0] + r
         return self.out_conv(x)
     
-def train(batch_size=BATCH_SIZE, num_epochs=1):
+def train(num_epochs, dataloader, dataloader_eval, batch_size=BATCH_SIZE):
     noise_scheduler = NoiseScheduler(0.0001, 0.02, device=device)
 
     for epoch in range(num_epochs):
         print(f'Epoch {epoch}')
+        model.train()
+        train_loss = 0
+
         for batch in tqdm(dataloader):
             t = torch.randint(0, NUM_TIMESTEPS, (batch_size,)).to(device)
             x, _ = batch
@@ -186,11 +189,36 @@ def train(batch_size=BATCH_SIZE, num_epochs=1):
             loss = loss_fn(noise, pred_noise)
             loss.backward()
             optimizer.step()
+            train_loss += loss.item()
 
+        train_loss /= len(dataloader)
+
+        model.eval()
+        val_loss = 0
+        with torch.no_grad():
+            for batch in tqdm(dataloader_eval):
+                t = torch.randint(0, NUM_TIMESTEPS, (batch_size,)).to(device)
+                x, _ = batch
+                x = x.to(device)
+                noise = torch.randn_like(x, requires_grad=False).to(device)
+                noised_x = noise_scheduler.add_noise(x, t, noise)
+
+                pred_noise = model(noised_x, t)
+                loss = loss_fn(noise, pred_noise)
+                val_loss += loss.item()
+
+            val_loss /= len(dataloader_eval)
+
+        wandb.log({"training loss": train_loss, "eval loss": val_loss})
         torch.save(model.state_dict(), 'ddpm_weights.pth')
 
 if __name__ == '__main__':
-    model = UNet(torch.device('cpu'))
+    mnist = MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+    mnist_eval = MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+    dataloader = DataLoader(mnist, batch_size=BATCH_SIZE, shuffle=True, drop_last=True, num_workers=4)
+    dataloader_eval = DataLoader(mnist_eval, batch_size=BATCH_SIZE, shuffle=False, drop_last=True)
+
+    model = UNet(device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     loss_fn = nn.MSELoss(reduction='mean')
-    train(num_epochs=50)
+    train(num_epochs=50, dataloader=dataloader, dataloader_eval=dataloader_eval)
