@@ -54,17 +54,13 @@ class Discriminator(nn.Module):
 
         self.cnn = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=5),
-            nn.BatchNorm2d(64),
             nn.MaxPool2d(kernel_size=2),
             nn.ReLU(),
             nn.Conv2d(64, 128, kernel_size=4, stride=2),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Conv2d(128, 256, kernel_size=4, stride=2),
-            nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.Conv2d(256, 256, kernel_size=4, stride=2),
-            nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.Conv2d(256, 16, kernel_size=4, stride=1),
             nn.MaxPool2d(kernel_size=2),
