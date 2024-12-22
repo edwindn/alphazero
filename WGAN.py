@@ -137,6 +137,24 @@ class GAN(nn.Module):
     def log(self, name, value):
         wandb.log({name: value})
 
+    def gradient_penalty(critic, fake, real):
+        b = real.size(0)
+        data = (fake + real) / 2
+        out = critic(data)
+        target_grad = torch.ones_like(out, dtype=torch.float32, device=self.device)
+    
+        grads = autograd.grad(
+            outputs=out,
+            inputs=data,
+            grad_outputs=torch.ones_like(out, dtype=torch.float32, device=self.device),
+            create_graph=True,
+            retain_graph=True
+        )
+        grads = grads.view(b, -1)
+        grad_norm = torch.linalg.vector_norm(grads, axis=1)
+        loss = torch.mean((grad_norm - 1)**2)
+        return loss
+
     def training_step(self, batch):
         imgs = batch.to(device)
         z = torch.randn(imgs.size(0), self.latent_dim, device=device)
