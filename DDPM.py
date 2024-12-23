@@ -10,8 +10,6 @@ import math
 from einops import rearrange
 import wandb
 
-run = wandb.init(project='diffusion-models')
-
 BATCH_SIZE = 64
 NUM_TIMESTEPS = 1000
 IMAGE_SIZE = 28
@@ -232,15 +230,19 @@ def generate_images(n):
                     img = img + noise * torch.sqrt(noise_scheduler.betas[t])
 
             plt.imshow(img.squeeze().detach().cpu().numpy(), cmap='gray')
-            plt.savefig(f'generated_img_{i+1}.png')
+            plt.savefig(f'ddpm_images/generated_img_{i+1}.png')
             plt.close()
             
 if __name__ == '__main__':
+    generate_images(5)
+    quit()
     mnist = MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
     mnist_eval = MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
     dataloader = DataLoader(mnist, batch_size=BATCH_SIZE, shuffle=True, drop_last=True, num_workers=4)
     dataloader_eval = DataLoader(mnist_eval, batch_size=BATCH_SIZE, shuffle=False, drop_last=True)
 
+    run = wandb.init(project='diffusion-models')
+    
     model = UNet(device).to(device)
     model.load_state_dict(torch.load('ddpm_weights.pth'))
     optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
