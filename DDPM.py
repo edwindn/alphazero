@@ -218,15 +218,15 @@ def generate_images(n):
 
     with torch.no_grad():
         for i in range(n):
-            img = torch.randn(1, 1, IMAGE_SIZE, IMAGE_SIZE)
+            img = torch.randn(1, 1, IMAGE_SIZE, IMAGE_SIZE).to(device)
             for t in tqdm(reversed(range(1, NUM_TIMESTEPS))):
-                t = torch.tensor([t])
+                t = torch.tensor([t], device=device)
 
                 coeff = torch.sqrt(noise_scheduler.betas[t])/torch.sqrt(1 - noise_scheduler.betas[t])
                 img = img/torch.sqrt(1 - noise_scheduler.betas[t]) - coeff*model(img, t)
 
                 if t.item() > 1:
-                    noise = torch.randn_like(img)
+                    noise = torch.randn_like(img, device=device)
                     img = img + noise * torch.sqrt(noise_scheduler.betas[t])
 
             plt.imshow(img.squeeze().detach().cpu().numpy(), cmap='gray')
