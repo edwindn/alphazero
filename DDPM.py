@@ -22,7 +22,7 @@ class NoiseScheduler:
         self.beta_end = beta_end
         self.num_timesteps = num_timesteps
 
-        self.betas = torch.linspace(beta_start, beta_end, num_timesteps)
+        self.betas = torch.linspace(beta_start, beta_end, num_timesteps, device=device)
         self.alphas = 1 - self.betas
         self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(device)
     
