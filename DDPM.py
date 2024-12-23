@@ -211,24 +211,25 @@ def train(num_epochs, dataloader, dataloader_eval, batch_size=BATCH_SIZE):
         torch.save(model.state_dict(), 'ddpm_weights.pth')
 
 def generate_images(n):
-    model = UNet(device).to(device)
+    model = UNet(device).to(device)  # Ensure model is on the correct device
     model.eval()
     model.load_state_dict(torch.load('ddpm_weights.pth', map_location=device))
     noise_scheduler = NoiseScheduler(0.0001, 0.02, device=device)
 
     with torch.no_grad():
         for i in range(n):
-            img = torch.randn(1, 1, IMAGE_SIZE, IMAGE_SIZE).to(device)
+            img = torch.randn(1, 1, IMAGE_SIZE, IMAGE_SIZE, device=device)  # Directly on device
             for t in tqdm(reversed(range(1, NUM_TIMESTEPS))):
-                t = torch.tensor([t]).to(device)
+                t_tensor = torch.tensor([t], device=device)  # Ensure `t` is on the same device
 
-                coeff = (torch.sqrt(noise_scheduler.betas[t])/torch.sqrt(1 - noise_scheduler.betas[t])).to(device)
-                img = (img/torch.sqrt(1 - noise_scheduler.betas[t]) - coeff*model(img, t)).to(device)
+                coeff = torch.sqrt(noise_scheduler.betas[t_tensor] / (1 - noise_scheduler.betas[t_tensor])).to(device)
+                img = (img / torch.sqrt(1 - noise_scheduler.betas[t_tensor]) - coeff * model(img, t_tensor))
 
-                if t.item() > 1:
-                    noise = torch.randn_like(img).to(device)
-                    img = img + noise * torch.sqrt(noise_scheduler.betas[t])
+                if t > 1:  # t is an integer now, no need for `.item()`
+                    noise = torch.randn_like(img, device=device)  # Ensure noise is on the same device
+                    img = img + noise * torch.sqrt(noise_scheduler.betas[t_tensor])
 
+            # Move the final image to CPU for plotting and saving
             plt.imshow(img.squeeze().detach().cpu().numpy(), cmap='gray')
             plt.savefig(f'ddpm_images/generated_img_{i+1}.png')
             plt.close()
