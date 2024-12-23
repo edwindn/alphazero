@@ -212,6 +212,29 @@ def train(num_epochs, dataloader, dataloader_eval, batch_size=BATCH_SIZE):
         wandb.log({"training loss": train_loss, "eval loss": val_loss})
         torch.save(model.state_dict(), 'ddpm_weights.pth')
 
+def generate_images(n):
+    model = UNet(device).to(device)
+    model.eval()
+    model.load_state_dict(torch.load('ddpm_weights.pth', map_location=device))
+    noise_scheduler = NoiseScheduler(0.0001, 0.02, device=device)
+
+    with torch.no_grad():
+        for i in range(n):
+            img = torch.randn(1, 1, IMAGE_SIZE, IMAGE_SIZE)
+            for t in tqdm(reversed(range(1, NUM_TIMESTEPS))):
+                t = torch.tensor([t])
+
+                coeff = torch.sqrt(noise_scheduler.betas[t])/torch.sqrt(1 - noise_scheduler.betas[t])
+                img = img/torch.sqrt(1 - noise_scheduler.betas[t]) - coeff*model(img, t)
+
+                if t.item() > 1:
+                    noise = torch.randn_like(img)
+                    img = img + noise * torch.sqrt(noise_scheduler.betas[t])
+
+            plt.imshow(img.squeeze().detach().cpu().numpy(), cmap='gray')
+            plt.savefig(f'generated_img_{i+1}.png')
+            plt.close()
+            
 if __name__ == '__main__':
     mnist = MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
     mnist_eval = MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
@@ -220,6 +243,6 @@ if __name__ == '__main__':
 
     model = UNet(device).to(device)
     model.load_state_dict(torch.load('ddpm_weights.pth'))
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
     loss_fn = nn.MSELoss(reduction='mean')
-    train(num_epochs=20, dataloader=dataloader, dataloader_eval=dataloader_eval)
+    train(num_epochs=75, dataloader=dataloader, dataloader_eval=dataloader_eval)
