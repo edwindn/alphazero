@@ -44,6 +44,22 @@ model = Model()
 outs = model(img)
 print([v.shape for v in outs])
 
+img_out = model(img)
+target_feature = 2
+target = img_out[target_feature]
+
+white_noise = torch.randn_like(img, requires_grad=True)
+optimizer = torch.optim.Adam((white_noise,), lr=1e1)
+for i in range(1000):
+    out = model(white_noise)[target_feature]
+    loss = torch.nn.MSELoss(reduction='mean')(out, target)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+torch.save(white_noise.detach().cpu(), 'generated_input.pt')
+quit()
+
 for i, im in enumerate(outs):
     torch.save(im, f'vgg_output_{i}.pt')
     continue
