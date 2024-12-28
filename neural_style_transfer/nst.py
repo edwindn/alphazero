@@ -9,8 +9,6 @@ import cv2
 import os
 import argparse
 
-IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD = [0.229, 0.224, 0.225]
 
 class Utils: # replaces import module
     def __init__(self):
@@ -30,6 +28,9 @@ class Utils: # replaces import module
         return var.sum()
 
     def read_image(self, path, height=None, normalise=1):
+        IMAGENET_MEAN = [0.485, 0.456, 0.406]
+        IMAGENET_STD = [0.229, 0.224, 0.225]
+        
         if not os.path.exists(path):
             raise Exception(f'File not found: {path}')
         img = cv2.imread(path)
