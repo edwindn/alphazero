@@ -191,7 +191,7 @@ if __name__ == '__main__':
     parser.add_argument("--optimizer", type=str, help="'adam' or 'lbfgs'", default='adam')
     parser.add_argument("--input_type", type=str, help="'random' or 'content'", default='content')
     parser.add_argument("--content_img", type=str, default='./lion.jpg')
-    parser.add_argument("--style_img", type=str, default='./vg_starry_night.jpg')
+    parser.add_argument("--style_img", type=str, default='./flowers.jpg')
     args = parser.parse_args()
     
     config = {
