@@ -114,8 +114,8 @@ def neural_style_transfer(config):
 
     content_img_path = config['content_img']
     style_img_path = config['style_img']
-    content = utils.read_img(content_img_path, config['height']).to(device)
-    style = utils.read_img(style_img_path, config['height']).to(device)
+    content = utils.read_image(content_img_path, config['height']).to(device)
+    style = utils.read_image(style_img_path, config['height']).to(device)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
