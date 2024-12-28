@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-from PIL import Image
 from torchvision import transforms
 from torchvision.models import vgg16
 from tqdm import tqdm
@@ -46,11 +45,11 @@ class Utils: # replaces import module
         img = transform(img).unsqueeze(0)
         return img
 
-    def show_image(self, im):
+    def show_image(self, im, path):
         im = im.detach().cpu().numpy()
         im = np.transpose(im, (1, 2, 0))
         plt.imshow(im)
-        plt.show()
+        plt.savefig(path)
 
 utils = Utils()
 
@@ -128,9 +127,9 @@ def neural_style_transfer(config):
         input = content.clone().requires_grad_(True)
     
     # safe checking
-    utils.show_image(input)
-    utils.show_image(content)
-    utils.show_image(style)
+    utils.show_image(input.squeeze(0), 'initial_input.png')
+    utils.show_image(content.squeeze(0), 'nst_content.png')
+    utils.show_image(style.squeeze(0), 'nst_style.png')
 
     model = Model().to(device)
     for p in model.parameters():
