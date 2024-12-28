@@ -112,12 +112,12 @@ def neural_style_transfer(config):
     assert config['content_feature_index'] in range(5)
     assert all(idx in range(5) for idx in config['style_features_indices'])
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     content_img_path = config['content_img']
     style_img_path = config['style_img']
     content = utils.read_image(content_img_path, config['height']).to(device)
     style = utils.read_image(style_img_path, config['height']).to(device)
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     #gaussian_noise_img = np.random.normal(loc=0, scale=90., size=content_img.shape).astype(np.float32)
     #init_img = torch.from_numpy(gaussian_noise_img).float().to(device)
