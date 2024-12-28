@@ -158,7 +158,7 @@ def neural_style_transfer(config):
 
 if __name__ == '__main__':
     config = {
-        'lr': 1e1,
+        'lr': 0.1,
         'num_steps': 3000,
         'height': 400,
         'content_feature_index': 4,
