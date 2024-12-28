@@ -143,7 +143,7 @@ def neural_style_transfer(config):
         optimizer = torch.optim.Adam((input,), lr=config['lr'])
         for step in tqdm(range(config['num_steps'])):
             tot_loss, content_loss, style_loss, tv_loss = tuning_step(model, optimizer, input, content_feature_maps, style_feature_maps, config)
-            if step % 10 == 0:
+            if step % 300 == 0:
                 input_history.append(input.detach().cpu())
                 print(f'step: {step}, tot_loss: {tot_loss.item()}, content_loss: {content_loss.item()}, style_loss: {style_loss.item()}, tv_loss: {tv_loss.item()}')
         
@@ -152,7 +152,7 @@ def neural_style_transfer(config):
     if config['optimizer'] == 'lbfgs':
         optimizer = torch.optim.LBFGS((input,), max_iter=1000)
         tot_loss, content_loss, style_loss, tv_loss = tuning_step(model, optimizer, input, content_feature_maps, style_feature_maps, config)
-        return input.detach()
+        return input.detach().cpu()
 
 if __name__ == '__main__':
     config = {
@@ -171,3 +171,9 @@ if __name__ == '__main__':
     }
 
     result = neural_style_transfer(config)
+
+    if isinstance(result, list):
+        for i, r in enumerate(result):
+            torch.save(r, f'generated_input_{i}.pt')
+    else:
+        torch.save(result, 'generated_input.pt')
