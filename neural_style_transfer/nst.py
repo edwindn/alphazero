@@ -165,8 +165,8 @@ if __name__ == '__main__':
         'style_weight': 3e4,
         'tv_weight': 1,
         'optimizer': 'adam',
-        'content_img': './content.png',
-        'style_img': './style.png',
+        'content_img': './lion.jpg',
+        'style_img': './vg_starry_night.jpg',
         'input_type': 'content'
     }
 
