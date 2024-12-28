@@ -222,3 +222,8 @@ if __name__ == '__main__':
 
     else:
         torch.save(result, 'results/generated_input.pt')
+        img = torch.load('results/generated_input.pt')
+        img = img.squeeze(0).numpy()
+        img = np.transpose(img, (1, 2, 0))
+        plt.imshow(img)
+        plt.savefig(f'results/generated_image.png')
