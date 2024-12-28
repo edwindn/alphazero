@@ -120,7 +120,8 @@ def neural_style_transfer(config):
     style = utils.read_image(style_img_path, config['height']).to(device)
 
     #gaussian_noise_img = np.random.normal(loc=0, scale=90., size=content_img.shape).astype(np.float32)
-    #init_img = torch.from_numpy(gaussian_noise_img).float().to(device)
+    #input = torch.from_numpy(gaussian_noise_img).float().to(device)
+    #input.requires_grad_(True)
 
     if config['input_type'] == 'random':
         input = torch.randn_like(content, requires_grad=True, device=device) # optimizer will automatically update the input image
@@ -158,18 +159,18 @@ def neural_style_transfer(config):
 
 if __name__ == '__main__':
     config = {
-        'lr': 1,
+        'lr': 5e-2,
         'num_steps': 3000,
         'height': 400,
         'content_feature_index': 4,
-        'style_features_indices': [0, 1, 2, 3],
+        'style_features_indices': [0, 1, 2, 3, 4],
         'content_weight': 1e1, #1e5
         'style_weight': 1e6, #3e4
         'tv_weight': 1,
         'optimizer': 'adam',
         'content_img': './lion.jpg',
         'style_img': './vg_starry_night.jpg',
-        'input_type': 'content'
+        'input_type': 'random'
     }
 
     result = neural_style_transfer(config)
