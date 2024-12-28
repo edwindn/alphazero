@@ -138,6 +138,7 @@ def neural_style_transfer(config):
 
     content_feature_maps = model(content)
     style_feature_maps = model(style)
+    style_feature_maps = [utils.gram_matrix(f) for f in style_feature_maps]
 
     if config['optimizer'] == 'adam':
         input_history = []
