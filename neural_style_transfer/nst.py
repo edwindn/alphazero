@@ -35,7 +35,7 @@ class Model(nn.Module):
         emb5 = self.block5(emb4)
         return emb1, emb2, emb3, emb4, emb5
 
-f = 'test_img.jpg'
+f = 'test_img.jpeg'
 img = Image.open(f)
 transform = transforms.ToTensor()
 img = transform(img)
