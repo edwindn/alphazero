@@ -98,9 +98,9 @@ def loss_fn(model, input_img, content_feats, style_feats, content_idx, style_idx
 
     tv_loss = utils.total_variation(input_img)
 
-    #tot_loss = config['content_weight']*content_loss + config['style_weight']*style_loss + config['tv_weight']*tv_loss
-    tot_loss = config['content_weight']*content_loss/content_loss.item() + \
-               config['style_weight']*style_loss/style_loss.item() + config['tv_weight']*tv_loss/tv_loss.item()
+    tot_loss = config['content_weight']*content_loss + config['style_weight']*style_loss + config['tv_weight']*tv_loss
+    #tot_loss = config['content_weight']*content_loss/content_loss.item() + \
+    #           config['style_weight']*style_loss/style_loss.item() + config['tv_weight']*tv_loss/tv_loss.item()
     return tot_loss, content_loss, style_loss, tv_loss
 
 def tuning_step(model, optimizer, input_img, content_feats, style_feats, config):
