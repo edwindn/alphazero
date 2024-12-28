@@ -57,6 +57,7 @@ for i in tqdm(range(1000)):
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+    white_noise = white_noise.detach().clone().requires_grad_(True)
     if (i+1) % 100 == 0:
         torch.save(white_noise.detach().cpu(), f'generated_input_{i}.pt')
         
