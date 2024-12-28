@@ -159,12 +159,12 @@ def neural_style_transfer(config):
 if __name__ == '__main__':
     config = {
         'lr': 1,
-        'num_steps': 10000,
+        'num_steps': 3000,
         'height': 400,
         'content_feature_index': 4,
         'style_features_indices': [0, 1, 2, 3],
-        'content_weight': 1e5,
-        'style_weight': 3e4,
+        'content_weight': 1e1, #1e5
+        'style_weight': 1e6, #3e4
         'tv_weight': 1,
         'optimizer': 'adam',
         'content_img': './lion.jpg',
