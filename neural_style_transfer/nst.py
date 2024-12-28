@@ -42,7 +42,10 @@ model = Model()
 
 outs = model(img)
 print([v.shape for v in outs])
+
 for i, im in enumerate(outs):
+    torch.save(im, f'vgg_output_{i}.pt')
+    continue
     im = im.detach().cpu().numpy()
     plt.imshow(im)
     plt.savefig(f'vgg_output_{i}.png')
