@@ -87,7 +87,8 @@ def loss_fn(model, input_img, content_feats, style_feats, content_idx, style_idx
     content_loss = torch.nn.MSELoss(reduction='mean')(input_content, content_feats[content_idx])
 
     style_loss = 0.0
-    for target, current in zip(style_feats[style_idxs], input_style_representation):
+    style_feats = [style_feats[i] for i in style_idxs]
+    for target, current in zip(style_feats, input_style_representation):
         style_loss += torch.nn.MSELoss(reduction='mean')(current, target)
     style_loss /= len(style_idxs)
 
