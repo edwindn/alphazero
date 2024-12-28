@@ -80,7 +80,7 @@ class Model(nn.Module):
         return emb1, emb2, emb3, emb4, emb5
         
 def loss_fn(model, input_img, content_feats, style_feats, content_idx, style_idxs, config):
-    input_representation = model(input)
+    input_representation = model(input_img)
     input_content = input_representation[content_idx]
     input_style_representation = [utils.gram_matrix(v) for i, v in enumerate(input_representation) if i in style_idxs]
 
