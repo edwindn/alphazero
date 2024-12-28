@@ -26,7 +26,7 @@ class Utils: # replaces import module
         var = (mean - x)**2
         return var.sum()
 
-    def read_image(self, path, height=None):
+    def read_image(self, path, height=None, normalise=1):
         if not os.path.exists(path):
             raise Exception(f'File not found: {path}')
         img = cv2.imread(path)
@@ -35,7 +35,8 @@ class Utils: # replaces import module
             width = int(w * height // h)
             img = cv2.resize(img, (width, height), interpolation=cv2.INTER_CUBIC)
         img = np.array(img).astype(np.float32)
-        img /= 255.0
+        if normalise == 1:
+            img /= 255.0
 
         transform = transforms.Compose([
             transforms.ToTensor(),
@@ -159,6 +160,7 @@ if __name__ == '__main__':
     utils = Utils()
     
     parser = argparse.ArgumentParser()
+    parser.add_argument("--normalise", type=float, help="normalise to range [0, b]; b = 1 or 255", default='1')
     parser.add_argument("--lr", type=float, default='1e0')
     parser.add_argument("--num_steps", type=int, default='3000')
     parser.add_argument("--content_weight", type=float, default='1e5')
@@ -180,7 +182,8 @@ if __name__ == '__main__':
         'optimizer': args.optimizer,
         'content_img': './lion.jpg',
         'style_img': './vg_starry_night.jpg',
-        'input_type': args.input_type
+        'input_type': args.input_type,
+        'normalise': args.normalise
     }
 
     result = neural_style_transfer(config)
