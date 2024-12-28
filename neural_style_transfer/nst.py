@@ -160,16 +160,20 @@ def neural_style_transfer(config):
         return input_history
 
     if config['optimizer'] == 'lbfgs':
-        optimizer = torch.optim.LBFGS((input,), max_iter=1000)
+        optimizer = torch.optim.LBFGS((input,), max_iter=3000)
         content_idx = config['content_feature_index']
         style_idxs = config['style_features_indices']
+        pbar = tqdm(total=3000))
 
         def closure():
             optimizer.zero_grad()
             tot_loss, content_loss, style_loss, tv_loss = loss_fn(model, input, content_feature_maps, style_feature_maps, content_idx, style_idxs, config)
             tot_loss.backward()
+            pbar.update(1)
+            pbar.set_postfix(loss=tot_loss.item())
             return tot_loss
         optimizer.step(closure=closure)
+        pbar.close()
         
         return input.detach().cpu()
 
