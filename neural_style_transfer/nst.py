@@ -7,6 +7,7 @@ from torchvision.models import vgg16
 from tqdm import tqdm
 import cv2
 import os
+import argparse
 
 vgg = vgg16(weights='DEFAULT')
 
@@ -158,19 +159,29 @@ def neural_style_transfer(config):
         return input.detach().cpu()
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--lr", type=int, default='1e0')
+    parser.add_argument("--num_steps", type=int, default='3000')
+    parser.add_argument("--content_weight", type=int, default='1e5')
+    parser.add_argument("--style_weight", type=int, default='3e4')
+    parser.add_argument("--tv_weight", type=int, default='1')
+    parser.add_argument("--optimizer", type=str, default='adam')
+    parser.add_argument("--input_type", type=str, default='content')
+    args = parser.parse_args()
+    
     config = {
-        'lr': 5e-2,
-        'num_steps': 3000,
+        'lr': args.lr,
+        'num_steps': args.num_steps,
         'height': 400,
         'content_feature_index': 4,
         'style_features_indices': [0, 1, 2, 3, 4],
-        'content_weight': 1e1, #1e5
-        'style_weight': 1e6, #3e4
-        'tv_weight': 1,
-        'optimizer': 'adam',
+        'content_weight': args.content_weight,
+        'style_weight': args.style_weight,
+        'tv_weight': args.tv_weight,
+        'optimizer': args.optimizer,
         'content_img': './lion.jpg',
         'style_img': './vg_starry_night.jpg',
-        'input_type': 'random'
+        'input_type': args.input_type
     }
 
     result = neural_style_transfer(config)
