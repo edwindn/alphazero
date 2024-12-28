@@ -166,7 +166,7 @@ def neural_style_transfer(config):
 
         def closure():
             optimizer.zero_grad()
-            tot_loss, content_loss, style_loss, tv_loss = loss_fn(model, input_img, content_feats, style_feats, content_idx, style_idxs, config)
+            tot_loss, content_loss, style_loss, tv_loss = loss_fn(model, input, content_feature_maps, style_feature_maps, content_idx, style_idxs, config)
             tot_loss.backward()
             return tot_loss
         optimizer.step(closure=closure)
