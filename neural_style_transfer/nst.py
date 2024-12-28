@@ -39,6 +39,7 @@ f = 'test_img.jpeg'
 img = Image.open(f)
 transform = transforms.ToTensor()
 img = transform(img)
+img /= 255.0
 
 model = Model()
 
