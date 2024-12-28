@@ -161,7 +161,16 @@ def neural_style_transfer(config):
 
     if config['optimizer'] == 'lbfgs':
         optimizer = torch.optim.LBFGS((input,), max_iter=1000)
-        tot_loss, content_loss, style_loss, tv_loss = tuning_step(model, optimizer, input, content_feature_maps, style_feature_maps, config)
+        content_idx = config['content_feature_index']
+        style_idxs = config['style_features_indices']
+
+        def closure():
+            optimizer.zero_grad()
+            tot_loss, content_loss, style_loss, tv_loss = loss_fn(model, input_img, content_feats, style_feats, content_idx, style_idxs, config)
+            tot_loss.backward()
+            return tot_loss
+        optimizer.step(closure=closure)
+        
         return input.detach().cpu()
 
 if __name__ == '__main__':
