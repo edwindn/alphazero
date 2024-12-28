@@ -163,7 +163,7 @@ def neural_style_transfer(config):
         optimizer = torch.optim.LBFGS((input,), max_iter=3000)
         content_idx = config['content_feature_index']
         style_idxs = config['style_features_indices']
-        pbar = tqdm(total=3000))
+        pbar = tqdm(total=3000)
 
         def closure():
             optimizer.zero_grad()
