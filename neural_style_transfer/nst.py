@@ -164,8 +164,8 @@ if __name__ == '__main__':
     parser.add_argument("--content_weight", type=float, default='1e5')
     parser.add_argument("--style_weight", type=float, default='3e4')
     parser.add_argument("--tv_weight", type=float, default='1')
-    parser.add_argument("--optimizer", type=str, default='adam')
-    parser.add_argument("--input_type", type=str, default='content')
+    parser.add_argument("--optimizer", type=str, help="'adam' or 'lbfgs'", default='adam')
+    parser.add_argument("--input_type", type=str, help="'random' or 'content'", default='content')
     args = parser.parse_args()
     
     config = {
