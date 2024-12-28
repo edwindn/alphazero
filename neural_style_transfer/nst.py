@@ -176,6 +176,6 @@ if __name__ == '__main__':
 
     if isinstance(result, list):
         for i, r in enumerate(result):
-            torch.save(r, f'generated_input_{i}.pt')
+            torch.save(r, f'results/generated_input_{i}.pt')
     else:
-        torch.save(result, 'generated_input.pt')
+        torch.save(result, 'results/generated_input.pt')
