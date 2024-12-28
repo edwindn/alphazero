@@ -58,8 +58,11 @@ for i in tqdm(range(1000)):
     loss.backward(retain_graph=True)
     optimizer.step()
     #white_noise = white_noise.detach().clone().requires_grad_(True)
-    if (i+1) % 100 == 0:
-        torch.save(white_noise.detach().cpu(), f'generated_input_{i}.pt')
+    if i % 100 == 0:
+        im = white_noise.detach().cpu().numpy()
+        im = np.transpose(im, (1, 2, 0))
+        plt.imshow(im)
+        plt.savefig(f'generated_input_{i}.png')
         
 quit()
 
