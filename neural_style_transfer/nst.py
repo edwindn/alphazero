@@ -177,6 +177,8 @@ if __name__ == '__main__':
     parser.add_argument("--tv_weight", type=float, default='1')
     parser.add_argument("--optimizer", type=str, help="'adam' or 'lbfgs'", default='adam')
     parser.add_argument("--input_type", type=str, help="'random' or 'content'", default='content')
+    parser.add_argument("--content_img", type=str, default='./lion.jpg')
+    parser.add_argument("--style_img", type=str, default='./vg_starry_night.jpg')
     args = parser.parse_args()
     
     config = {
@@ -189,8 +191,8 @@ if __name__ == '__main__':
         'style_weight': args.style_weight,
         'tv_weight': args.tv_weight,
         'optimizer': args.optimizer,
-        'content_img': './lion.jpg',
-        'style_img': './vg_starry_night.jpg',
+        'content_img': args.content_img,
+        'style_img': args.style_img,
         'input_type': args.input_type,
         'normalise': args.normalise
     }
