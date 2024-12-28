@@ -9,6 +9,9 @@ import cv2
 import os
 import argparse
 
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_STD = [0.229, 0.224, 0.225]
+
 class Utils: # replaces import module
     def __init__(self):
         pass
@@ -37,10 +40,12 @@ class Utils: # replaces import module
         img = np.array(img).astype(np.float32)
         if normalise == 1:
             img /= 255.0
+        elif normalise == 255:
+            IMAGENET_MEAN *= 255
 
         transform = transforms.Compose([
             transforms.ToTensor(),
-            #transforms.Normalize(mean=IMAGENET_MEAN_255, std=IMAGENET_STD_NEUTRAL)
+            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
         ])
         img = transform(img).unsqueeze(0)
         return img
@@ -109,6 +114,7 @@ def neural_style_transfer(config):
     assert config['input_type'] in ['random', 'content']
     assert config['content_feature_index'] in range(5)
     assert all(idx in range(5) for idx in config['style_features_indices'])
+    assert config['normalise'] in [1, 255]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
