@@ -5,7 +5,8 @@ import torch.nn as nn
 from PIL import Image
 from torchvision import transforms
 from torchvision.models import vgg16
-vgg = vgg16(pretrained=True)
+
+vgg = vgg16(weights='DEFAULT')
 
 class Model(nn.Module):
     def __init__(self):
