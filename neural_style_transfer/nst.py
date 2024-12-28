@@ -34,43 +34,4 @@ class Model(nn.Module):
         emb4 = self.block4(emb3)
         emb5 = self.block5(emb4)
         return emb1, emb2, emb3, emb4, emb5
-
-f = 'test_img.jpeg'
-img = Image.open(f)
-transform = transforms.ToTensor()
-img = transform(img)
-img /= 255.0
-
-model = Model()
-
-outs = model(img)
-print([v.shape for v in outs])
-
-img_out = model(img)
-target_feature = 2
-target = img_out[target_feature]
-
-white_noise = torch.randn_like(img, requires_grad=True)
-optimizer = torch.optim.Adam((white_noise,), lr=1e1)
-for i in tqdm(range(1000)):
-    out = model(white_noise)[target_feature]
-    loss = torch.nn.MSELoss(reduction='mean')(out, target)
-    optimizer.zero_grad()
-    loss.backward(retain_graph=True)
-    optimizer.step()
-    #white_noise = white_noise.detach().clone().requires_grad_(True)
-    if i % 100 == 0:
-        im = white_noise.detach().cpu().numpy()
-        im = np.transpose(im, (1, 2, 0))
-        plt.imshow(im)
-        plt.savefig(f'generated_input_{i}.png')
         
-quit()
-
-for i, im in enumerate(outs):
-    torch.save(im, f'vgg_output_{i}.pt')
-    continue
-    im = im.detach().cpu().numpy()
-    plt.imshow(im)
-    plt.savefig(f'vgg_output_{i}.png')
-
