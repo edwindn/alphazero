@@ -41,6 +41,7 @@ img = transform(img)
 model = Model()
 
 outs = model(img)
+print([v.shape for v in outs])
 for i, im in enumerate(outs):
     im = im.detach().cpu().numpy()
     plt.imshow(im)
