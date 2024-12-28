@@ -1,5 +1,7 @@
 # Misc projects
 
+* Neural style transfer
+
 * Implementation of Google's AlphaZero model
 
 Training: `python alphazero.py`
