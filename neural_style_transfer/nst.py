@@ -22,10 +22,8 @@ class Utils: # replaces import module
         return gram
 
     def total_variation(self, x):
-        mean = x.mean()
-        mean = torch.ones_like(x)*mean
-        var = (mean - x)**2
-        return var.sum()
+        return torch.sum(torch.abs(x[:, :, :, :-1] - x[:, :, :, 1:])) + \
+               torch.sum(torch.abs(x[:, :, :-1, :] - x[:, :, 1:, :]))
 
     def read_image(self, path, height=None, normalise=1):
         IMAGENET_MEAN = [0.485, 0.456, 0.406]
@@ -42,7 +40,7 @@ class Utils: # replaces import module
         if normalise == 1:
             img /= 255.0
         elif normalise == 255:
-            IMAGENET_MEAN *= 255
+            IMAGENET_MEAN = [i*255 for i in IMAGENET_MEAN]
 
         transform = transforms.Compose([
             transforms.ToTensor(),
@@ -53,6 +51,8 @@ class Utils: # replaces import module
 
     def show_image(self, im, path):
         im = im.detach().cpu().numpy()
+        im -= im.min()
+        im /= im.max() #normalise to [0, 1]
         im = np.transpose(im, (1, 2, 0))
         plt.imshow(im)
         plt.savefig(path)
@@ -181,8 +181,8 @@ if __name__ == '__main__':
         'lr': args.lr,
         'num_steps': args.num_steps,
         'height': 400,
-        'content_feature_index': 4,
-        'style_features_indices': [0, 1, 2, 3, 4],
+        'content_feature_index': 1,
+        'style_features_indices': [0, 1, 2, 3],
         'content_weight': args.content_weight,
         'style_weight': args.style_weight,
         'tv_weight': args.tv_weight,
