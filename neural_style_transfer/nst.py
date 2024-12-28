@@ -9,8 +9,6 @@ import cv2
 import os
 import argparse
 
-vgg = vgg16(weights='DEFAULT')
-
 class Utils: # replaces import module
     def __init__(self):
         pass
@@ -51,8 +49,6 @@ class Utils: # replaces import module
         im = np.transpose(im, (1, 2, 0))
         plt.imshow(im)
         plt.savefig(path)
-
-utils = Utils()
 
 class Model(nn.Module):
     def __init__(self):
@@ -159,6 +155,9 @@ def neural_style_transfer(config):
         return input.detach().cpu()
 
 if __name__ == '__main__':
+    vgg = vgg16(weights='DEFAULT')
+    utils = Utils()
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--lr", type=int, default='1e0')
     parser.add_argument("--num_steps", type=int, default='3000')
