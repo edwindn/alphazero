@@ -52,6 +52,7 @@ class Utils: # replaces import module
         plt.imshow(im)
         plt.show()
 
+utils = Utils()
 
 class Model(nn.Module):
     def __init__(self):
