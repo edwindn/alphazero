@@ -5,6 +5,7 @@ import torch.nn as nn
 from PIL import Image
 from torchvision import transforms
 from torchvision.models import vgg16
+from tqdm import tqdm
 
 vgg = vgg16(weights='DEFAULT')
 
@@ -50,14 +51,15 @@ target = img_out[target_feature]
 
 white_noise = torch.randn_like(img, requires_grad=True)
 optimizer = torch.optim.Adam((white_noise,), lr=1e1)
-for i in range(1000):
+for i in tqdm(range(1000)):
     out = model(white_noise)[target_feature]
     loss = torch.nn.MSELoss(reduction='mean')(out, target)
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-
-torch.save(white_noise.detach().cpu(), 'generated_input.pt')
+    if (i+1) % 100 == 0:
+        torch.save(white_noise.detach().cpu(), f'generated_input_{i}.pt')
+        
 quit()
 
 for i, im in enumerate(outs):
